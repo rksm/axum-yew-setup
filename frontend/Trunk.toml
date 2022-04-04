@@ -3,4 +3,4 @@ target = "index.html"
 dist = "../dist"
 
 [[proxy]]
-backend = "http://localhost:8081/api/"
+backend = "http://[::1]:8081/api/"
