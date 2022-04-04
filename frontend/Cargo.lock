@@ -91,8 +91,8 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "env_logger",
+ "gloo-net",
  "log",
- "reqwasm",
  "wasm-bindgen-futures",
  "wasm-logger",
  "yew",
@@ -412,15 +412,6 @@ name = "regex-syntax"
 version = "0.6.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
-
-[[package]]
-name = "reqwasm"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05b89870d729c501fa7a68c43bf4d938bbb3a8c156d333d90faa0e8b3e3212fb"
-dependencies = [
- "gloo-net",
-]
 
 [[package]]
 name = "route-recognizer"
