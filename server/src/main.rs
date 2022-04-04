@@ -2,7 +2,7 @@ use axum::body::{boxed, Body};
 use axum::http::{Response, StatusCode};
 use axum::{response::IntoResponse, routing::get, Router};
 use clap::Parser;
-use std::net::{IpAddr, SocketAddr};
+use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
 use tokio::fs;
@@ -19,7 +19,7 @@ struct Opt {
     log_level: String,
 
     /// set the listen addr
-    #[clap(short = 'a', long = "addr", default_value = "127.0.0.1")]
+    #[clap(short = 'a', long = "addr", default_value = "::1")]
     addr: String,
 
     /// set the listen port
@@ -75,7 +75,7 @@ async fn main() {
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
 
     let sock_addr = SocketAddr::from((
-        IpAddr::from_str(opt.addr.as_str()).unwrap_or_else(|_| "127.0.0.1".parse().unwrap()),
+        IpAddr::from_str(opt.addr.as_str()).unwrap_or(IpAddr::V6(Ipv6Addr::LOCALHOST)),
         opt.port,
     ));
 
