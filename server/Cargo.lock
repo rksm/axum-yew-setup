@@ -120,6 +120,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-extra"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb752c1940e365de8be991c909da4af5e07fe84afaaa8c57abd957f1555d8665"
+dependencies = [
+ "axum",
+ "bytes",
+ "http",
+ "mime",
+ "pin-project-lite",
+ "tower",
+ "tower-http",
+ "tower-layer",
+ "tower-service",
+]
+
+[[package]]
 name = "base64"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -700,6 +717,7 @@ name = "server"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "axum-extra",
  "clap",
  "log",
  "serde",
