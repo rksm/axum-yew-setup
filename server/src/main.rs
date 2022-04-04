@@ -3,7 +3,9 @@ use axum::http::{Response, StatusCode};
 use axum::{response::IntoResponse, routing::get, Router};
 use clap::Parser;
 use std::net::{IpAddr, SocketAddr};
+use std::path::PathBuf;
 use std::str::FromStr;
+use tokio::fs;
 use tower::{ServiceBuilder, ServiceExt};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
@@ -43,8 +45,27 @@ async fn main() {
     let app = Router::new()
         .route("/api/hello", get(hello))
         .fallback(get(|req| async move {
-            match ServeDir::new(opt.static_dir).oneshot(req).await {
-                Ok(res) => res.map(boxed),
+            match ServeDir::new(&opt.static_dir).oneshot(req).await {
+                Ok(res) => match res.status() {
+                    StatusCode::NOT_FOUND => {
+                        let index_path = PathBuf::from(&opt.static_dir).join("index.html");
+                        let index_content = match fs::read_to_string(index_path).await {
+                            Err(_) => {
+                                return Response::builder()
+                                    .status(StatusCode::NOT_FOUND)
+                                    .body(boxed(Body::from("index file not found")))
+                                    .unwrap()
+                            }
+                            Ok(index_content) => index_content,
+                        };
+
+                        Response::builder()
+                            .status(StatusCode::OK)
+                            .body(boxed(Body::from(index_content)))
+                            .unwrap()
+                    }
+                    _ => res.map(boxed),
+                },
                 Err(err) => Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                     .body(boxed(Body::from(format!("error: {err}"))))
