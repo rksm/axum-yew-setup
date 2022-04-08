@@ -1,4 +1,10 @@
-use axum::{response::IntoResponse, routing::get, Router};
+mod counter;
+
+use axum::body::Body;
+use axum::extract::ConnectInfo;
+use axum::http::{HeaderValue, Request};
+use axum::routing::get;
+use axum::Router;
 use axum_extra::routing::SpaRouter;
 use clap::Parser;
 use std::net::{IpAddr, Ipv6Addr, SocketAddr};
@@ -6,13 +12,16 @@ use std::str::FromStr;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 
-// Setup the command line interface with clap.
 #[derive(Parser, Debug)]
-#[clap(name = "server", about = "A server for our wasm project!")]
+#[clap(name = "{{project-name}}-server", about = "A Rust web server.")]
 struct Opt {
     /// set the log level
     #[clap(short = 'l', long = "log", default_value = "debug")]
     log_level: String,
+
+    /// the default file to serve, aka index.html
+    #[clap(short = 'i', long = "index", default_value = "index.html")]
+    index_file: String,
 
     /// set the listen addr
     #[clap(short = 'a', long = "addr", default_value = "::1")]
@@ -35,13 +44,32 @@ async fn main() {
     if std::env::var("RUST_LOG").is_err() {
         std::env::set_var("RUST_LOG", format!("{},hyper=info,mio=info", opt.log_level))
     }
-    // enable console logging
+
     tracing_subscriber::fmt::init();
 
+    // let tracing_layer = TraceLayer::new_for_http();
+    let tracing_layer = TraceLayer::new_for_http().make_span_with(|request: &Request<Body>| {
+        let ConnectInfo(addr) = request
+            .extensions()
+            .get::<ConnectInfo<SocketAddr>>()
+            .unwrap();
+        let empty_val = &HeaderValue::from_static("");
+        let user_agent = request
+            .headers()
+            .get("User-Agent")
+            .unwrap_or(empty_val)
+            .to_str()
+            .unwrap_or("");
+        let uri = request.uri();
+        tracing::debug_span!("client-addr", uri=%uri, addr = %addr, user_agent=%user_agent)
+    });
+
     let app = Router::new()
-        .route("/api/hello", get(hello))
-        .merge(SpaRouter::new("/assets", opt.static_dir))
-        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
+        .route("/healthz", get(|| async { "ok" }))
+        .merge(SpaRouter::new("/assets", opt.static_dir).index_file(opt.index_file))
+        .layer(ServiceBuilder::new().layer(tracing_layer));
+
+    let app = counter::setup(app);
 
     let sock_addr = SocketAddr::from((
         IpAddr::from_str(opt.addr.as_str()).unwrap_or(IpAddr::V6(Ipv6Addr::LOCALHOST)),
@@ -51,11 +79,7 @@ async fn main() {
     log::info!("listening on http://{}", sock_addr);
 
     axum::Server::bind(&sock_addr)
-        .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await
         .expect("Unable to start server");
-}
-
-async fn hello() -> impl IntoResponse {
-    "hello from server!"
 }
