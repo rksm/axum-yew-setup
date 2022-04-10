@@ -57,5 +57,32 @@ async fn main() {
 }
 
 async fn hello() -> impl IntoResponse {
-    "hello from server!"
+    axum::Json(serde_json::json!({
+      "todos": [
+        {
+          "id": "1",
+          "description": "COOK",
+          "completed": true,
+          "editing": false
+        },
+        {
+          "id": "2",
+          "description": "Play basketball",
+          "completed": false,
+          "editing": false
+        },
+        {
+          "id": "3",
+          "description": "reading",
+          "completed": false,
+          "editing": false
+        },
+        {
+          "id": "4",
+          "description": "learn rust",
+          "completed": false,
+          "editing": false
+        }
+      ]
+    }))
 }

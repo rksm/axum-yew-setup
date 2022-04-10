@@ -93,6 +93,7 @@ dependencies = [
  "env_logger",
  "gloo-net",
  "log",
+ "serde",
  "wasm-bindgen-futures",
  "wasm-logger",
  "yew",

@@ -27,6 +27,19 @@ fn app() -> Html {
     }
 }
 
+#[derive(serde::Deserialize)]
+struct Todos {
+    todos: Vec<Todo>,
+}
+
+#[derive(serde::Deserialize)]
+struct Todo {
+    id: String,
+    description: String,
+    completed: bool,
+    editing: bool,
+}
+
 #[function_component(HelloServer)]
 fn hello_server() -> Html {
     let data = use_state(|| None);
@@ -46,7 +59,7 @@ fn hello_server() -> Html {
                                 resp.status_text()
                             ))
                         } else {
-                            resp.text().await.map_err(|err| err.to_string())
+                            resp.json::<Todos>().await.map_err(|err| err.to_string())
                         }
                     };
                     data.set(Some(result));
@@ -65,7 +78,16 @@ fn hello_server() -> Html {
         }
         Some(Ok(data)) => {
             html! {
-                <div>{"Got server response: "}{data}</div>
+                <div>{"Got todos: "}
+                <ul>{
+                    data.todos.iter().map(|ea| html! {
+                        <li>
+                            <input type="checkbox" checked={ea.completed}/>
+                            <span>{&ea.id}{" - "}{&ea.description}</span>
+                        </li>
+                    }).collect::<Html>()
+                }
+                </ul></div>
             }
         }
         Some(Err(err)) => {

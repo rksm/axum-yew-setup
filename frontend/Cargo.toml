@@ -10,6 +10,7 @@ console_error_panic_hook = "0.1.7"
 env_logger = "0.9.0"
 gloo-net = "0.1.0"
 log = "0.4.16"
+serde = { version = "1.0.136", features = ["derive"] }
 wasm-bindgen-futures = "0.4.29"
 wasm-logger = "0.2.0"
 yew = "0.19.3"
