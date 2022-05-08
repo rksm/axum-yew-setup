@@ -25,7 +25,7 @@ fn counter() -> Html {
                     let resp = Request::post("/api/counter").send().await.unwrap();
 
                     if !resp.ok() {
-                        log::error!(
+                        tracing::error!(
                             "Error fetching data {} ({})",
                             resp.status(),
                             resp.status_text()
@@ -35,7 +35,7 @@ fn counter() -> Html {
 
                     let content = match resp.text().await {
                         Err(err) => {
-                            log::error!("Error fetching data {err}");
+                            tracing::error!("Error fetching data {err}");
                             return;
                         }
                         Ok(content) => content,
@@ -43,7 +43,7 @@ fn counter() -> Html {
 
                     let count = match content.parse() {
                         Err(err) => {
-                            log::error!("Data is not a number: {err}");
+                            tracing::error!("Data is not a number: {err}");
                             return;
                         }
                         Ok(count) => count,
@@ -67,7 +67,6 @@ fn counter() -> Html {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 fn switch(routes: &Route) -> Html {
-    dbg!(routes.to_path());
     match routes {
         Route::Home => html! { <h1>{ "Home" }</h1> },
         Route::Counter => html! { <Counter /> },
@@ -85,8 +84,8 @@ fn app() -> Html {
 }
 
 fn main() {
-    wasm_logger::init(wasm_logger::Config::new(log::Level::Trace));
     console_error_panic_hook::set_once();
+    tracing_wasm::set_as_global_default();
 
     yew::start_app::<App>();
 }

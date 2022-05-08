@@ -7,15 +7,14 @@ pushd frontend;
 cargo add \
       anyhow \
       console_error_panic_hook \
-      env_logger \
-      log \
       gloo-net \
       gloo-timers \
       gloo-utils \
-      serde +derive \
+      serde --features serde/derive \
       serde_json \
+      tracing \
+      tracing-wasm \
       wasm-bindgen-futures \
-      wasm-logger \
       yew \
       yew-router
 popd
@@ -24,16 +23,16 @@ pushd server;
 cargo add \
       anyhow \
       axum \
-      axum-extra +spa \
+      axum-extra --features axum-extra/spa \
       base64 \
-      clap +derive \
+      clap --features clap/derive \
       log \
-      hyper +full \
-      serde +derive \
+      hyper --features hyper/full \
+      serde --features serde/derive \
       serde_json \
-      tokio +full \
+      tokio --features tokio/full \
       tower \
-      tower-http +full \
+      tower-http --features tower-http/full \
       tracing \
       tracing-subscriber
 popd

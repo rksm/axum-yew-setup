@@ -7,10 +7,10 @@ This is a full stack Rust web app using [axum](https://github.com/tokio-rs/axum)
 
 ## Usage
 
-Run `install-dependencies.sh` when you have first generated this project.
+Run `./scripts/install-dependencies.sh` when you have first generated this project.
 
-Run the dev version (auto-reloads server & client on file change) with `./dev.sh`.
+Run the dev version (auto-reloads server & client on file change) with `./scripts/dev.sh`.
 
-Run the pre-compiled version with `./prod.sh`.
+Run the pre-compiled version with `./scripts/prod.sh`.
 
 The app will start at https://localhost:8080 by default.

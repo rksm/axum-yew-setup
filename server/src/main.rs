@@ -66,7 +66,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/healthz", get(|| async { "ok" }))
-        .merge(SpaRouter::new("/assets", opt.static_dir).index_file(opt.index_file))
+        .merge(SpaRouter::new("/assets", &opt.static_dir).index_file(&opt.index_file))
         .layer(ServiceBuilder::new().layer(tracing_layer));
 
     let app = counter::setup(app);
@@ -76,7 +76,7 @@ async fn main() {
         opt.port,
     ));
 
-    log::info!("listening on http://{}", sock_addr);
+    tracing::info!("listening on http://{}", sock_addr);
 
     axum::Server::bind(&sock_addr)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())
