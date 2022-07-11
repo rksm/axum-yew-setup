@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 pushd frontend
-trunk build --public-url /assets/
+trunk build --release --public-url /assets/
 popd
 
 pushd server
