@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 pushd frontend
-trunk build --release --public-url /assets/
+CARGO_TARGET_DIR=../target-trunk trunk build --release --public-url /assets/
 popd
 
 pushd server
