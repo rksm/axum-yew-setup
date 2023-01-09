@@ -6,6 +6,4 @@ pushd frontend
 CARGO_TARGET_DIR=../target-trunk trunk build --release --public-url /assets/
 popd
 
-pushd server
-cargo run --release -- --port 8080
-popd
+cargo run --bin server --release -- --port 8080

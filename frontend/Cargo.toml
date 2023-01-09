@@ -7,10 +7,10 @@ edition = "2021"
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
-env_logger = "0.9.0"
-gloo-net = "^0.2"
-log = "^0.4"
-wasm-bindgen-futures = "^0.4"
+gloo-net = "0.2.5"
+log = "0.4.17"
+wasm-bindgen-futures = "0.4.33"
 wasm-logger = "0.2.0"
-yew = "0.19.3"
-yew-router = "0.16.0"
+yew = { version = "0.20.0", features = ["csr"] }
+yew-router = "0.17.0"
+
