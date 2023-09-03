@@ -1,5 +1,6 @@
 use axum::body::{boxed, Body};
-use axum::http::{Response, StatusCode};
+use axum::http::{Request, Response, StatusCode};
+use axum::response::Html;
 use axum::{response::IntoResponse, routing::get, Router};
 use clap::Parser;
 use std::net::{IpAddr, Ipv6Addr, SocketAddr};
@@ -44,35 +45,33 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/hello", get(hello))
-        .fallback_service(get(|req| async move {
-            match ServeDir::new(&opt.static_dir).oneshot(req).await {
-                Ok(res) => {
-                    let status = res.status();
-                    match status {
-                        StatusCode::NOT_FOUND => {
-                            let index_path = PathBuf::from(&opt.static_dir).join("index.html");
-                            let index_content = match fs::read_to_string(index_path).await {
-                                Err(_) => {
-                                    return Response::builder()
-                                        .status(StatusCode::NOT_FOUND)
-                                        .body(boxed(Body::from("index file not found")))
-                                        .unwrap()
-                                }
-                                Ok(index_content) => index_content,
-                            };
+        .fallback_service(get(|req: Request<Body>| async move {
+            const ROUTES: &[&str] = &["/", "/hello-server"];
+            let is_known_path = ROUTES.contains(&req.uri().path());
 
-                            Response::builder()
-                                .status(StatusCode::OK)
-                                .body(boxed(Body::from(index_content)))
-                                .unwrap()
-                        }
-                        _ => res.map(boxed),
-                    }
+            let res = ServeDir::new(&opt.static_dir).oneshot(req).await.unwrap(); // serve dir is infallible
+            let status = res.status();
+            match (status, is_known_path) {
+                // if we don't find a file corresponding to the path but the
+                // path is a "known route", we serve index.html
+                (StatusCode::NOT_FOUND, true) => {
+                    let index_path = PathBuf::from(&opt.static_dir).join("index.html");
+                    fs::read_to_string(index_path)
+                        .await
+                        .map(|index_content| (StatusCode::OK, Html(index_content)).into_response())
+                        .unwrap_or_else(|_| {
+                            (StatusCode::INTERNAL_SERVER_ERROR, "index.html not found")
+                                .into_response()
+                        })
                 }
-                Err(err) => Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(boxed(Body::from(format!("error: {err}"))))
-                    .expect("error response"),
+
+                // otherwise we serve a 404
+                (StatusCode::NOT_FOUND, false) => {
+                    (StatusCode::NOT_FOUND, "not found").into_response()
+                }
+
+                // path was found as a file in the static dir
+                _ => res.into_response(),
             }
         }))
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
