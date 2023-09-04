@@ -46,15 +46,13 @@ async fn main() {
     let app = Router::new()
         .route("/api/hello", get(hello))
         .fallback_service(get(|req: Request<Body>| async move {
-            const ROUTES: &[&str] = &["/", "/hello-server"];
-            let is_known_path = ROUTES.contains(&req.uri().path());
-
             let res = ServeDir::new(&opt.static_dir).oneshot(req).await.unwrap(); // serve dir is infallible
             let status = res.status();
-            match (status, is_known_path) {
-                // if we don't find a file corresponding to the path but the
-                // path is a "known route", we serve index.html
-                (StatusCode::NOT_FOUND, true) => {
+            match status {
+                // If we don't find a file corresponding to the path we serve index.html.
+                // If you want to serve a 404 status code instead you can add a route check as shown in
+                // https://github.com/rksm/axum-yew-setup/commit/a48abfc8a2947b226cc47cbb3001c8a68a0bb25e
+                StatusCode::NOT_FOUND => {
                     let index_path = PathBuf::from(&opt.static_dir).join("index.html");
                     fs::read_to_string(index_path)
                         .await
@@ -63,11 +61,6 @@ async fn main() {
                             (StatusCode::INTERNAL_SERVER_ERROR, "index.html not found")
                                 .into_response()
                         })
-                }
-
-                // otherwise we serve a 404
-                (StatusCode::NOT_FOUND, false) => {
-                    (StatusCode::NOT_FOUND, "not found").into_response()
                 }
 
                 // path was found as a file in the static dir
