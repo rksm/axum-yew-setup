@@ -1,5 +1,5 @@
-use axum::body::{boxed, Body};
-use axum::http::{Request, Response, StatusCode};
+use axum::body::Body;
+use axum::http::{Request, StatusCode};
 use axum::response::Html;
 use axum::{response::IntoResponse, routing::get, Router};
 use clap::Parser;
@@ -74,7 +74,7 @@ async fn main() {
         opt.port,
     ));
 
-    log::info!("listening on http://{}", sock_addr);
+    tracing::info!("listening on http://{}", sock_addr);
 
     axum::Server::bind(&sock_addr)
         .serve(app.into_make_service())
